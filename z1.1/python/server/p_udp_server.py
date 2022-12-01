@@ -4,7 +4,7 @@ import os
 
 BUFSIZE = 512
 
-HOST = os.environ.get('HOSTNAME')
+HOST = "127.0.0.1"
 port = int(sys.argv[1])
 
 
