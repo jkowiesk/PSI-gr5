@@ -1,9 +1,10 @@
 import socket
 import sys
+import os
 
 BUFSIZE = 512
 
-HOST = "127.0.0.1"
+HOST = os.environ.get('HOSTNAME')
 port = int(sys.argv[1])
 
 
@@ -21,3 +22,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         if not data:
             print("Error in datagram?")
             break
+        
