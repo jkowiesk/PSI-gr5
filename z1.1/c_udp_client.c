@@ -1,26 +1,32 @@
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
-#define h_addr h_addr_list[0]
-
-
-const char* HOST = "127.0.0.1";
-const char* DATA = "test";
+#define BUFFSIZE 5
+#define ITERATIONS 3
 
 int main(int argc, char *argv[]) {
+    char* host = "127.0.0.1";
+    char* data[3] = {"test1", "test2", "test3"};
+
+
     int sock;
     struct sockaddr_in name;
     struct hostent *hp;
+
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1) {
         perror("opening datagram socket");
         exit(1);
     }
+
     hp = gethostbyname(argv[1]);
     printf("Host %s", hp->h_name);
 
@@ -33,9 +39,14 @@ int main(int argc, char *argv[]) {
     name.sin_port = htons( atoi( argv[2] ));
     printf(" : %i", htons( atoi( argv[2] )));
 
-    if (sendto(sock, DATA, sizeof DATA ,0, (struct sockaddr *) &name,sizeof name) == -1) {
-        perror("sending datagram message");
-        close(sock);
-        exit(0);
+
+    for (int i = 0; i < 3; i++) {
+        if (sendto(sock, (const char *) data[i], BUFFSIZE, 0, (struct sockaddr *) &name,sizeof name) == -1) {
+            perror("sending datagram message");
+            close(sock);
+            exit(0);
+        } else {
+            printf("Sent #%d datagram\n", i+1);
+        }
     }
 }
