@@ -13,7 +13,7 @@
 #define ITERATIONS 3
 
 int main(int argc, char *argv[]) {
-    char* host = "127.0.0.1";
+    char* host = getenv("HOSTNAME");
     char* data[3] = {"test1", "test2", "test3"};
 
 

@@ -23,7 +23,7 @@ void main(void) {
     }
 
     name.sin_family = AF_INET;
-    name.sin_addr.s_addr = inet_addr("127.0.0.1");
+    name.sin_addr.s_addr = inet_addr(getenv(getenv("HOSTNAME")));
     name.sin_port = htons(4001);;
 
     if (bind(sock,(struct sockaddr *)&name, sizeof name) == -1) {
