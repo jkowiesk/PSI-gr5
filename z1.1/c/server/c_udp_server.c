@@ -22,9 +22,10 @@ void main(void) {
         exit(1);
     }
 
+    char* port = getenv("HOSTNAME");
     name.sin_family = AF_INET;
-    name.sin_addr.s_addr = inet_addr("127.0.0.1");
-    name.sin_port = htons(4001);;
+    name.sin_addr.s_addr = inet_addr(port);
+    name.sin_port = htons(4001);
 
     if (bind(sock,(struct sockaddr *)&name, sizeof name) == -1) {
         perror("binding datagram socket");
@@ -39,7 +40,7 @@ void main(void) {
 
     printf("Will listen on %s : %d\n", inet_ntoa(name.sin_addr), ntohs( name.sin_port));
 
-    for (int i = 0; i < ITERATIONS; i++) {
+    for (;;) {
         if ( read(sock, buf, BUFFSIZE) == -1 ) {
             perror("receiving datagram packet");
             exit(2);

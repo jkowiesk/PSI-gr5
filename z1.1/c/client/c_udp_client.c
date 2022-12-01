@@ -13,7 +13,6 @@
 #define ITERATIONS 3
 
 int main(int argc, char *argv[]) {
-    char* host = "127.0.0.1";
     char* data[3] = {"test1", "test2", "test3"};
 
 
@@ -37,7 +36,7 @@ int main(int argc, char *argv[]) {
     memcpy((char *) &name.sin_addr, (char *) hp->h_addr, hp->h_length);
     name.sin_family = AF_INET;
     name.sin_port = htons( atoi( argv[2] ));
-    printf(" : %i", htons( atoi( argv[2] )));
+    printf(" : %i\n", atoi( argv[2] ));
 
 
     for (int i = 0; i < 3; i++) {

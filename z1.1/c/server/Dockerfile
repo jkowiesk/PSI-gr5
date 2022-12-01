@@ -1,9 +1,9 @@
-FROM gcc:4.9
+FROM gcc:9.5
 
 WORKDIR /src/
 
 COPY . /src/
 
-RUN gcc -o server udp_server.c
+RUN gcc -o server c_udp_server.c
 
 ENTRYPOINT  ["./server"]
