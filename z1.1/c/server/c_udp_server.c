@@ -40,7 +40,7 @@ void main(void) {
 
     printf("Will listen on %s : %d\n", inet_ntoa(name.sin_addr), ntohs( name.sin_port));
 
-    for (int i = 0; i < ITERATIONS; i++) {
+    for (;;) {
         if ( read(sock, buf, BUFFSIZE) == -1 ) {
             perror("receiving datagram packet");
             exit(2);
