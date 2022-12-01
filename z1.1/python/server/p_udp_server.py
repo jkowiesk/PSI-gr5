@@ -18,8 +18,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         address = data_address[1]
         print( "Message from Client:{}".format(data.decode("ascii")) )
         print( "Client IP Address:{}".format(address) )
-        print(len(data))
         if not data:
             print("Error in datagram?")
             break
-        
