@@ -22,9 +22,10 @@ void main(void) {
         exit(1);
     }
 
+    char* port = getenv("HOSTNAME");
     name.sin_family = AF_INET;
-    name.sin_addr.s_addr = inet_addr(getenv(getenv("HOSTNAME")));
-    name.sin_port = htons(4001);;
+    name.sin_addr.s_addr = inet_addr(port);
+    name.sin_port = htons(4001);
 
     if (bind(sock,(struct sockaddr *)&name, sizeof name) == -1) {
         perror("binding datagram socket");
