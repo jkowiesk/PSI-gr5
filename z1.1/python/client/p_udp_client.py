@@ -3,7 +3,7 @@ import sys
 import io
 import os
 
-HOST = "127.0.0.1"
+HOST = os.environ.get('HOSTNAME')
 port = int(sys.argv[1])
 
 DATA = ["test1", "test2", "test3"]
