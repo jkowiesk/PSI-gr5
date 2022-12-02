@@ -2,9 +2,10 @@ import socket
 import sys
 import os
 
+
 BUFSIZE = 65536
 
-HOST = "127.0.0.1"
+HOST = os.environ.get('HOSTNAME')
 port = int(sys.argv[1])
 
 
