@@ -1,8 +1,10 @@
 import socket
 import sys
 import io
+import os
 
-HOST = "127.0.0.1"
+
+HOST = os.environ.get('HOSTNAME')
 port = int(sys.argv[1])
 DATA_SIZES = [100, 1000, 10000, 50000, 60000, 65507, 65508]
 
