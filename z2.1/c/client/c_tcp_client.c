@@ -1,78 +1,58 @@
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#define DEFAULT_PORT 8000
+#define DEFAULT_SERVER_IP "127.0.0.1"
 
-int work() { return 1; }
-#define BUFSIZE 64
-#define FIRST_BYTE_MASK 0xFF
-int main() {
-    int sfd, active_sfd;
-    struct sockaddr_in servaddr, clientaddr;
-    long temp_addr;
-    char buf[BUFSIZE];
-    int length;
-    int bytes_read;
-
-    sfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sfd < 0) {
-        perror("Problem with creating a socket");
-        exit(1);
+// Open a socket and connect to the specified server and port.
+// Returns the socket identifier, or -1 if an error occurs.
+int32_t open_socket(int32_t port, const char* server_ip) {
+    int32_t socket_id = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_id < 0) {
+        return -1;
     }
+
+    struct sockaddr_in servaddr;
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = 0;
-    //serwer otrzymuje port i IP przydzielony przez SO
-    if (bind(sfd, (struct sockadrr *)&servaddr, sizeof(servaddr)) != 0) {
-        perror("Problem with binding address");
-        exit(1);
+    servaddr.sin_addr.s_addr = inet_addr(server_ip);
+    servaddr.sin_port = htons(port);
+
+    if (connect(socket_id, (struct sockaddr*) &servaddr, sizeof(servaddr))) {
+        return -1;
     }
-    length = sizeof(servaddr);
-    if (getsockname(sfd, (struct sockaddr *) &servaddr, &length) < 0) {
-        perror("Problem with accessing received port");
-        exit(1);
-    }
-    printf("Received port: %u\n", ntohs(servaddr.sin_port));
-    //tryb pasywny gniazda
-    if (listen(sfd, 32) != 0) {
-        perror("Problem with calling listen");
-        exit(1);
-    }
-    while (work()) {
-        //odebranie połaczenia
-        active_sfd = accept(sfd, &clientaddr, &length);
-        if (active_sfd < 0) {
-            perror("Problem with getting connection from client");
-            exit(1);
+
+    return socket_id;
+}
+
+int main(int argc, char* argv[]) {
+    static char const* message = "Message";
+
+    // Parse the server IP and port from the command-line arguments,
+    // or use the default values if none are provided.
+    int32_t port = DEFAULT_PORT;
+    const char* server_ip = DEFAULT_SERVER_IP;
+    if (argc > 1) {
+        server_ip = argv[1];
+        if (argc > 2) {
+            port = atoi(argv[2]);
         }
-        //pętla czytania
-        do {
-            memset(buf, 0, sizeof(buf));
-            if ((bytes_read = recv(active_sfd, buf, BUFSIZE-1, 0)) < 0) {
-                perror("Problem with receiving data");
-                exit(1);
-            }
-            printf("%s", buf);
-            if (bytes_read == 0)
-                printf("\n");
-        } while (bytes_read > 0);
-        if (close(active_sfd) != 0) {
-            perror("Problem with closing active socket");
-            exit(1);
-        }
-
     }
 
-    if (close(sfd) != 0) {
-        perror("Problem with closing socket");
-        exit(1);
+    int32_t socket_id = open_socket(port, server_ip);
+    if (socket_id < 0) {
+        return -1;
     }
 
+    if (write(socket_id, message, sizeof(message)) < 0) {
+        return -1;
+    }
+
+    close(socket_id);
     return 0;
 }
