@@ -1,0 +1,9 @@
+FROM gcc:9.5
+
+WORKDIR /src/
+
+COPY . /src/
+
+RUN gcc -o client tcp_client2.c
+
+ENTRYPOINT  ["./client"]
