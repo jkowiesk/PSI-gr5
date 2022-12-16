@@ -1,8 +1,10 @@
 import socket
 import sys
 import threading
+import os
 
-localIP = "127.0.0.1"
+
+localIP = os.environ.get("HOST")
 localPort = 8000
 bufferSize = 1024
 
@@ -36,7 +38,7 @@ def main():
             conn, address = s.accept()
             thread = threading.Thread(target=handle_client, args=(conn, address))
             thread.start()
-            print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
+            print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
 
 
 def get_host_and_port():
@@ -51,3 +53,4 @@ def get_host_and_port():
 
 if __name__ == "__main__":
     main()
+

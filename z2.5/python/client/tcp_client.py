@@ -1,10 +1,12 @@
 import socket
 import string
 import sys
+import os
 from random import choices
 from time import sleep
 
-HOST = "127.0.0.1"
+
+HOST = os.environ.get("HOST")
 port = int(sys.argv[1])
 
 DATA_SIZE = 512
@@ -26,3 +28,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
