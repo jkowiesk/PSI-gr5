@@ -11,14 +11,14 @@ else:
     localPort = int(sys.argv[2])
 bufferSize = 8
 
-TCPServerSocket = socket.socket(family = socket.AF_INET, type = socket.SOCK_STREAM)
-TCPServerSocket.bind((localIP, localPort))
+sock = socket.socket(family = socket.AF_INET, type = socket.SOCK_STREAM)
+sock.bind((localIP, localPort))
 print("TCP server up and listening")
 
-TCPServerSocket.listen(16)
+sock.listen(16)
 while(True):
    # receiving name from client
-    host, addr = TCPServerSocket.accept()
+    host, addr = sock.accept()
     with host:
         while(True):
             msg = host.recv(bufferSize)
@@ -27,4 +27,4 @@ while(True):
             msg = msg.decode()
             print(msg)
 
-TCPServerSocket.close()
+    sock.close()
