@@ -1,30 +1,25 @@
 import socket
 import sys
 
-if len(sys.argv) < 3:
-    print("No server adrress or port was given")
-    print("Setting default values: a: 172.18.0.2, p: 8000")
-    localIP = '0.0.0.0'
-    localPort = 8000
-else:
-    localIP = sys.argv[1]
-    localPort = int(sys.argv[2])
-bufferSize = 8
+HOST = "127.0.0.1"
+port = int(sys.argv[1])
+MSG = "1234567890123456789012345"
 
-sock = socket.socket(family = socket.AF_INET, type = socket.SOCK_STREAM)
-sock.bind((localIP, localPort))
-print("TCP server up and listening")
+def main():
+    for i, func_name in enumerate(['send', 'sendall']):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            print("calling connect()")
+            s.connect((HOST, port))
+            print("after connect()\n")
+            try:
+                if i:
+                    s.sendall(MSG.encode())
+                else:
+                    s.send(MSG.encode())
+                print(f"Sent message using {func_name}: {MSG}")
+            except OSError:
+                print("Failed sending message")
+            print(f"{func_name} ended")
 
-sock.listen(16)
-while(True):
-   # receiving name from client
-    host, addr = sock.accept()
-    with host:
-        while(True):
-            msg = host.recv(bufferSize)
-            if not msg:
-               break
-            msg = msg.decode()
-            print(msg)
-
-    sock.close()
+if __name__ == "__main__":
+    main()

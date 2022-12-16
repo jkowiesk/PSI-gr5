@@ -25,7 +25,6 @@ def main():
         print("after connect()\n")
         data = generate_data(DATA_SIZE)
         s.send(data)
-        s.close()
 
 if __name__ == "__main__":
     main()
