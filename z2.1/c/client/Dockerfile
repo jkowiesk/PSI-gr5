@@ -4,6 +4,7 @@ WORKDIR /src/
 
 COPY . /src/
 
-RUN gcc -o client c_udp_client.c
+RUN gcc -o client c_tcp_client.c
 
-ENTRYPOINT  ["./client"]
+CMD ["./client"]
+
