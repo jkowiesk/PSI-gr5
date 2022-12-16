@@ -4,4 +4,4 @@ WORKDIR /src/
 
 COPY . .
 
-ENTRYPOINT ["python3", "p_udp_client.py"]
+ENTRYPOINT ["python3", "p_tcp_client.py"]
