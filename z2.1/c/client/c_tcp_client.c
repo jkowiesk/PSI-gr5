@@ -7,14 +7,13 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define DEFAULT_PORT 8888
-#define DEFAULT_SERV_IP "127.0.0.1"
 
 int main(int argc, char* argv[]) {
     static char const* message = "PSI test message for second exercise";
 
-    int32_t port = DEFAULT_PORT;
-    const char* server_ip = DEFAULT_SERV_IP;
+    int32_t port = 8000;
+    const char* server_ip = getenv("HOST");
+    printf("Connecting to %s...\n", server_ip);
     if (argc > 1) {
         server_ip = argv[1];
         if (argc > 2) {

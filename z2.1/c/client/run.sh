@@ -1,3 +1,4 @@
 #!/bin/sh
 
-docker run --rm -it --name z15_c_client --net z15_network z15_z1_1_c_client 172.21.15.2 4001
+docker run --rm -it --name z15_c_client --net z15_network -e HOST="172.21.15.2" z15_2_1_c_client
+

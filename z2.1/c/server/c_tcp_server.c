@@ -6,13 +6,14 @@
 
 #define BUFLEN 1024
 
-#define DEFAULT_PORT 8888
 #define DEFAULT_SERV_IP "127.0.0.1"
 
 int main(void) {
     int sock, msgsock, client_length, rval;
     struct sockaddr_in server_addr, client;
     char *client_addr, buf[BUFLEN];
+    // char *server_ip = getenv("HOST") ? getenv("HOST") : DEFAULT_SERV_IP;
+    // int port = getnenv("PORT") ? getenv("PORT") : DEFAULT_PORT;
 
     // Create new socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -23,8 +24,8 @@ int main(void) {
 
     // Bind the socket to local address
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(DEFAULT_PORT);
-    server_addr.sin_addr.s_addr = inet_addr(DEFAULT_SERV_IP);
+    server_addr.sin_port = htons(8000);
+    server_addr.sin_addr.s_addr = inet_addr(getenv("HOST"));
     if (bind(sock, (struct sockaddr *)&server_addr, sizeof server_addr) == -1) {
         perror("binding stream_socket");
         exit(-1);
@@ -75,3 +76,4 @@ int main(void) {
 
     return 0;
 }
+
