@@ -1,7 +1,9 @@
 import socket
 import sys
+import os
 
-HOST = "127.0.0.1"
+
+HOST = os.environ.get("HOST")
 port = int(sys.argv[1])
 MSG = "1234567890123456789012345"
 
