@@ -7,36 +7,14 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define DEFAULT_PORT 8000
-#define DEFAULT_SERVER_IP "127.0.0.1"
-
-// Open a socket and connect to the specified server and port.
-// Returns the socket identifier, or -1 if an error occurs.
-int32_t open_socket(int32_t port, const char* server_ip) {
-    int32_t socket_id = socket(AF_INET, SOCK_STREAM, 0);
-    if (socket_id < 0) {
-        return -1;
-    }
-
-    struct sockaddr_in servaddr;
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr(server_ip);
-    servaddr.sin_port = htons(port);
-
-    if (connect(socket_id, (struct sockaddr*) &servaddr, sizeof(servaddr))) {
-        return -1;
-    }
-
-    return socket_id;
-}
+#define DEFAULT_PORT 8888
+#define DEFAULT_SERV_IP "127.0.0.1"
 
 int main(int argc, char* argv[]) {
-    static char const* message = "Message";
+    static char const* message = "PSI test message for second exercise";
 
-    // Parse the server IP and port from the command-line arguments,
-    // or use the default values if none are provided.
     int32_t port = DEFAULT_PORT;
-    const char* server_ip = DEFAULT_SERVER_IP;
+    const char* server_ip = DEFAULT_SERV_IP;
     if (argc > 1) {
         server_ip = argv[1];
         if (argc > 2) {
@@ -44,8 +22,17 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    int32_t socket_id = open_socket(port, server_ip);
+    int32_t socket_id = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_id < 0) {
+        return -1;
+    }
+
+    struct sockaddr_in serv_addr;
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(server_ip);
+    serv_addr.sin_port = htons(port);
+
+    if (connect(socket_id, (struct sockaddr*) &serv_addr, sizeof(serv_addr))) {
         return -1;
     }
 
