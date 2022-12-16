@@ -1,3 +1,0 @@
-FROM python:3
-ADD tcp_client1.py /
-ENTRYPOINT [ "python", "./tcp_client1.py" ]
