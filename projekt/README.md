@@ -1,3 +1,34 @@
+# Jak odpalać to na dockerze
+
+## Budujemy image
+
+```
+docker build -t p2p-node .
+```
+
+## Tworzymy sieć
+
+```
+docker network create p2p-net
+```
+
+## Tworzymy węzły
+
+```
+docker run --rm -it --name node-one --network p2p-net p2p-node
+```
+
+```
+docker run --rm -it --name node-two --network p2p-net p2p-node
+```
+
+```
+docker run --rm -it --name node-three --network p2p-net p2p-node
+```
+
+> UWAGA: Jako że używamy flagi `it` trzeba każdy kontener należy uruchomić w osobnym terminalu
+
+
 # Co robią dane metody
 
 - init(self, host, port): This is the constructor for the P2PNode class. It initializes the instance variables host, port, peers, resources, and download_dir. host and port are the IP address and port number that the node will listen on for incoming connections. peers is a list of connections to other peers. resources is a dictionary that maps resource names to file paths for resources that are available on this node. download_dir is the directory where resources will be saved when they are downloaded.
