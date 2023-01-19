@@ -16,7 +16,10 @@ class UI:
 
     def display_local_resources(self):
         """Displays the resources that are currently stored locally"""
-        pass
+        resources = self.node.res_handler.scan_local_folder()
+        print("RESOURCES")
+        for resource_name, resource_obj in resources.items():
+            print(f"# Resource name: \"{resource_name}\" \tLocal path to resource: \"{resource_obj.get('path')}\"")
 
     def add_new_resource(self):
         """Prompts the user to add a new resource from their local file system"""
