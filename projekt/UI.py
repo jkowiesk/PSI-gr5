@@ -9,6 +9,7 @@
 - dodanie nowego węzła do sieci
 """
 from P2PNode import P2PNode
+import os
 
 class UI:
     def __init__(self):
@@ -21,9 +22,23 @@ class UI:
         for resource_name, resource_obj in resources.items():
             print(f"# Resource name: \"{resource_name}\" \tLocal path to resource: \"{resource_obj.get('path')}\"")
 
+    def display_all_resources(self):
+        """Displays all resources"""
+        pass
+
     def add_new_resource(self):
         """Prompts the user to add a new resource from their local file system"""
-        pass
+        while True:
+            new_resource_path = input("Please provide resource name: ")
+            if not os.path.exists(os.path.join(self.node.res_handler.local_folder, new_resource_path)) and os.path.exists(new_resource_path):
+                self.node.res_handler.copy_file_to_local_folder(file_path=new_resource_path)
+                print("File successfully copied to local folder!")
+                break
+            elif not os.path.exists(new_resource_path):
+                print(f"File with provided path {new_resource_path} does not exist")
+            elif os.path.exists(os.path.join(self.node.res_handler.local_folder, new_resource_path)):
+                print(f"File with provided path {new_resource_path} already exists in local folder")
+        
 
     def download_resource(self, filename: str):
         """Prompts the user to enter the name of a resource to download from a remote node"""
