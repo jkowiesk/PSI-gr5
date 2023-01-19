@@ -10,6 +10,7 @@
 """
 from P2PNode import P2PNode
 import os
+import socket
 
 class UI:
     def __init__(self):
@@ -42,8 +43,9 @@ class UI:
 
     def download_resource(self, filename: str):
         """Prompts the user to enter the name of a resource to download from a remote node"""
+        raise socket.error
         self.node.get_file(filename)
-        pass
+        
 
     def greet_user(self):
         message = "Welcome to P2P network UI"
@@ -62,8 +64,9 @@ class UI:
         options = {
             "1": "Display local resources",
             "2": "Add new resource",
-            "3": "Download resource",
-            "4": "Broadcast local resources",
+            "3": "Delete resource",
+            "4": "Download resource",
+            "5": "Broadcast local resources",
             "q": "Exit"
         }
         return options
@@ -80,11 +83,31 @@ class UI:
             elif user_input == "2":
                 self.add_new_resource()
             elif user_input == "3":
-                filename = input("Write filename: ")
-                self.download_resource(filename)
+                resource_name = input("Please provide resource name to delete: ")
+                is_deleted = self.node.res_handler.delete_resource(resource_name=resource_name)
+                if is_deleted:
+                    print(f"Deleted file {resource_name}")
+                else:
+                    print(f"No such file in local directory: {resource_name}")
             elif user_input == "4":
+                filename = input("Write filename: ")
+                tries = 2
+                while tries:
+                    try:
+                        tries -= 1
+                        self.download_resource(filename)
+                    except (socket.error, socket.timeout) as e:
+                        if not tries:
+                            message = "ERROR"
+                            print(f"{'#' * len(message)} {message}")
+                            print(f"Caught exception socket.error : {e}\nCould not send a download a file after two tries\n")
+                            break
+                        else:
+                            continue
+            elif user_input == "5":
                 self.broadcast_local_resources()
             elif user_input == "q":
+                self.node.stop_node()
                 break
             else:
                 print("Invalid input, please try again.")

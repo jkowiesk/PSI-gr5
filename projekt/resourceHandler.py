@@ -18,6 +18,12 @@ class ResourceHandler:
         except Exception:
             raise ValueError("Unable to scan local folder")
 
+    def delete_resource(self, resource_name: str) -> bool:
+        if not check_resource(resource_name):
+            return False
+        os.remove(os.path.join(self.local_folder, resource_name))
+        return True
+
     def copy_file_to_local_folder(self, file_path: str) -> None:
         file_name = Path(file_path).name
         try:

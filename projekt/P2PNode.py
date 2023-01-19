@@ -93,6 +93,6 @@ class P2PNode:
 
                 f.write(data)
 
-    def stop(self):
+    def stop_node(self):
         self.stop = True
         self.listen_thread.join()
