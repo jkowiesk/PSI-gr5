@@ -1,6 +1,18 @@
+"""
+- zapytanie wszystkich węzłów czy posiadają zasób
+- odpowiadanie na zapytanie o posiadany zasób
+- możliwość wprowadzania zasobu przez użytkownika
+- pobieranie konkretnych nazwanych zasobów ze zdalnego węzła (jednego na raz)
+- rozgłaszanie informacji o posiadanych lokalnie zasobach
+- usuwanie lokalnego zasobu
+- interfejs tekstowy obsługujący współbieżność transferu zasobów
+- dodanie nowego węzła do sieci
+"""
+from P2PNode import P2PNode
+
 class UI:
     def __init__(self):
-        pass
+        self.node = P2PNode()
 
     def display_local_resources(self):
         """Displays the resources that are currently stored locally"""
@@ -10,16 +22,9 @@ class UI:
         """Prompts the user to add a new resource from their local file system"""
         pass
 
-    def download_resource(self):
+    def download_resource(self, filename: str):
         """Prompts the user to enter the name of a resource to download from a remote node"""
-        pass
-
-    def broadcast_local_resources(self):
-        """Sends information about locally stored resources to other nodes in the network"""
-        pass
-
-    def handle_network_errors(self):
-        """Handles any network errors that occur during resource transfer"""
+        self.node.get_file(filename)
         pass
 
     def greet_user(self):
@@ -57,7 +62,8 @@ class UI:
             elif user_input == "2":
                 self.add_new_resource()
             elif user_input == "3":
-                self.download_resource()
+                filename = input("Write filename: ")
+                self.download_resource(filename)
             elif user_input == "4":
                 self.broadcast_local_resources()
             elif user_input == "q":
