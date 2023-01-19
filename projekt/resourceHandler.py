@@ -33,7 +33,11 @@ class ResourceHandler:
         except:
             return False
 
-    def process_resource(self, resource_name: str, chunk_size: int = 1024) -> tuple[bytes, int]:
+    def divide_into_batches(self, lst, batch_size: int):
+        for i in range(0, len(lst), batch_size):
+            yield lst[i:i+batch_size]
+
+    def process_resource(self, resource_name: str, chunk_size: int = 1024) -> bytes:
         if not self.check_resource(resource_name):
             return None
 
