@@ -13,12 +13,12 @@ class ResourceHandler:
         if not self.check_resource(resource_name):
             return None, None
 
-        processed_file = b''
+        processed_file = []
         packets_amount = 0
         with open(resource_name, 'rb') as resource_file:
             chunk = resource_file.read(chunk_size)
             while chunk:
-                processed_file += chunk
+                processed_file.append(chunk)
                 chunk = resource_file.read(chunk_size)
                 packets_amount += 1
 

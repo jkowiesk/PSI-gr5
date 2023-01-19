@@ -2,6 +2,7 @@ import socket
 import threading
 from time import time
 import os
+from resourceHandler import ResourceHandler
 
 
 class P2PNode:
@@ -46,9 +47,10 @@ class P2PNode:
             elif message.startswith("GET"):
                 filename = message[4:]
                 if filename in self.files.get(addr, []):
-                    with open(filename, 'rb') as f:
-                        bytes_to_send = f.read()
-                        self.sock.sendto(bytes_to_send, addr)
+                    processed_file, packets_amount = ResourceHandler().process_resource(filename)
+                    self.sock.sendto(packets_amount, addr)
+                    for chunk in processed_file:
+                        self.sock.sendto(chunk, addr)
                 else:
                     self.sock.sendto("FILE_NOT_FOUND".encode(), addr)
 
@@ -60,10 +62,16 @@ class P2PNode:
     def get_file(self, filename):
         for peer in self.peers:
             self.sock.sendto(f"GET{filename}".encode(), peer)
-            data, _ = self.sock.recvfrom(1024)
-            if data.decode() == "FILE_NOT_FOUND":
+            packet_amount, _ = self.sock.recvfrom(1024) 
+            
+            if packet_amount.decode() == "FILE_NOT_FOUND":
                 continue
+
             with open(os.path.join(self.download_dir, filename), 'wb') as f:
+                data = b''
+                for _ in range(packet_amount):
+                    chunk, _ = self.sock.recvfrom(1024)
+                    data += chunk.decode('utf-8')
                 f.write(data)
                 break
     
