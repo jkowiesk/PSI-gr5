@@ -1,7 +1,6 @@
 import socket
 import threading
 import time
-import os
 from resourceHandler import ResourceHandler
 
 UDP_PORT = 4000
@@ -14,36 +13,67 @@ class P2PNode:
         self.connect()
         self.res_handler = ResourceHandler('./psi_projekt_download')
 
+
     def connect(self):
-        self.udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.udp_sock.bind(('', UDP_PORT))
+        self.broadcast_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.broadcast_sock.bind(('', UDP_PORT))
+
+        self.udp_listen_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp_listen_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.udp_listen_sock.bind(('', TCP_PORT))
+
+        self.file_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.file_sock.bind(('', TCP_PORT))
+
         self.stop = False
 
         self.broadcast_thread = threading.Thread(target=self.broadcast)
         self.broadcast_thread.start()
+
+        self.listen_bc_thread = threading.Thread(target=self.listen_broadcast)
+        self.listen_bc_thread.start()
+
         self.listen_thread = threading.Thread(target=self.listen)
         self.listen_thread.start()
+
+        self.file_thread = threading.Thread(target=self.handle_request)
+        self.file_thread.start()
+
 
     def broadcast(self):
         while not self.stop:
             self.udp_sock.sendto("SYS".encode(), ('<broadcast>', UDP_PORT))
             time.sleep(1)
 
-    def listen(self):
+
+    def listen_broadcast(self):
         while not self.stop:
-            data, addr = self.udp_sock.recvfrom(1024)
+            data, addr = self.broadcast_sock.recvfrom(1024)
             message = data.decode()
-            if message.startswith("SYS"):
+            sock_addr = socket.gethostbyname(socket.gethostname())
+            if message.startswith("SYS") and sock_addr == addr:
                 self.peers.add(addr)
-                self.udp_sock.sendto("SYS/ACK".encode(), addr)
+                self.broadcast_sock.sendto("SYS/ACK".encode(), addr)
             elif message.startswith("SYS/ACK"):
                 self.peers.add(addr)
-            elif message.startswith("FILES"):
+            
+
+    def listen(self):
+        while not self.stop:
+            data, addr = self.udp_listen_sock.recvfrom(1024)
+            message = data.decode()
+            if message.startswith("FILES"):
                 files = message[6:].split(",")
                 self.files[addr] = files
                 print(f'{addr} has files: {files}')
-            elif message.startswith("GET"):
+
+    '''
+    def handle_request(self):
+        while not self.stop:
+            data, addr = self.file_sock.recv(1024)
+            message = data.decode()
+            if message.startswith("GET"):
                 filename = message[3:]
                 if self.res_handler.files.get(filename, []) != []:
                     print("test")
@@ -58,12 +88,13 @@ class P2PNode:
                         client.send(chunk)
                 else:
                     self.udp_sock.sendto("FILE_NOT_FOUND".encode(), addr)
+    '''
 
     def share_files(self, filenames):
-        self.files[("0.0.0.0", UDP_PORT)] = filenames
+        self.files[("0.0.0.0", TCP_PORT)] = filenames
         message = "FILES" + ",".join(filenames)
-        self.udp_sock.sendto(message.encode(), (self.broadcast_address, self.port))
-
+        self.udp_listen_sock.sendto(message.encode(), ('<broadcast>', TCP_PORT))
+    '''
     def get_file(self, filename):
         # print(self.peers)
         for peer in self.peers:
@@ -82,8 +113,11 @@ class P2PNode:
                     data += chunk.decode('utf-8')
                 f.write(data)
                 break
+    '''
 
     def stop(self):
         self.stop = True
-        self.listen_thread.join()
         self.broadcast_thread.join()
+        self.listen_bc_thread.join()
+        self.listen_thread.join()
+        self.file_thread.join()
