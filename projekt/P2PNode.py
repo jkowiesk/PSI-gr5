@@ -1,26 +1,25 @@
 import socket
 import threading
-from time import time
+import time
 import os
 from resourceHandler import ResourceHandler
 
+UDP_PORT = 4000
+TCP_PORT = 4001
 
 class P2PNode:
-    def __init__(self, host: str, port: str) -> None:
-        self.host = host
-        self.port = port
+    def __init__(self) -> None:
         self.peers = set()
         self.res = {}
-        self.change_download_folder('/psi_projekt_download')
-
-    def change_download_folder(self, directory: str) -> None:
-        self.download_dir = directory
+        self.connect()
+        self.res_handler = ResourceHandler('./psi_projekt_download')
 
     def connect(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        s.bind(('', self.port))
+        self.udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.udp_sock.bind(('', UDP_PORT))
         self.stop = False
+
         self.broadcast_thread = threading.Thread(target=self.broadcast)
         self.broadcast_thread.start()
         self.listen_thread = threading.Thread(target=self.listen)
@@ -28,16 +27,16 @@ class P2PNode:
 
     def broadcast(self):
         while not self.stop:
-            self.sock.sendto("SYS".encode(), (self.host, self.port))
+            self.udp_sock.sendto("SYS".encode(), ('<broadcast>', UDP_PORT))
             time.sleep(1)
 
     def listen(self):
         while not self.stop:
-            data, addr = self.sock.recvfrom(1024)
+            data, addr = self.udp_sock.recvfrom(1024)
             message = data.decode()
             if message.startswith("SYS"):
                 self.peers.add(addr)
-                self.sock.sendto("SYS/ACK".encode(), addr)
+                self.udp_sock.sendto("SYS/ACK".encode(), addr)
             elif message.startswith("SYS/ACK"):
                 self.peers.add(addr)
             elif message.startswith("FILES"):
@@ -45,36 +44,45 @@ class P2PNode:
                 self.files[addr] = files
                 print(f'{addr} has files: {files}')
             elif message.startswith("GET"):
-                filename = message[4:]
-                if filename in self.files.get(addr, []):
-                    processed_file, packets_amount = ResourceHandler().process_resource(filename)
-                    self.sock.sendto(packets_amount, addr)
+                filename = message[3:]
+                if self.res_handler.files.get(filename, []) != []:
+                    print("test")
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.bind(("", TCP_PORT + 1))
+                    s.listen(5)
+                    client, addr = s.accept()
+                    processed_file, packets_amount = self.res_handler.process_resource(filename)
+
+                    client.send(packets_amount)      # tu się wywala, chyba trzeba jakoś zamienic na bajty
                     for chunk in processed_file:
-                        self.sock.sendto(chunk, addr)
+                        client.send(chunk)
                 else:
-                    self.sock.sendto("FILE_NOT_FOUND".encode(), addr)
+                    self.udp_sock.sendto("FILE_NOT_FOUND".encode(), addr)
 
     def share_files(self, filenames):
-        self.files[("0.0.0.0", self.port)] = filenames
+        self.files[("0.0.0.0", UDP_PORT)] = filenames
         message = "FILES" + ",".join(filenames)
-        self.sock.sendto(message.encode(), (self.broadcast_address, self.port))
+        self.udp_sock.sendto(message.encode(), (self.broadcast_address, self.port))
 
     def get_file(self, filename):
+        # print(self.peers)
         for peer in self.peers:
-            self.sock.sendto(f"GET{filename}".encode(), peer)
-            packet_amount, _ = self.sock.recvfrom(1024) 
-            
-            if packet_amount.decode() == "FILE_NOT_FOUND":
-                continue
-
-            with open(os.path.join(self.download_dir, filename), 'wb') as f:
+            print(peer)
+            self.udp_sock.sendto(f"GET{filename}".encode(), peer)
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(("", TCP_PORT))
+            time.sleep(0.1)       # to jest żeby listen zdążył zrobić .accept()
+            client, addr = s.connect((peer[0], TCP_PORT + 1))
+            packet_amount = client.recv(1024)
+            print(packet_amount)
+            with open(f"{self.res_handler.local_folder}/{filename}", 'wb') as f:
                 data = b''
-                for _ in range(packet_amount):
-                    chunk, _ = self.sock.recvfrom(1024)
+                for _ in range(int(packet_amount.decode())):
+                    chunk = client.recv(1024)
                     data += chunk.decode('utf-8')
                 f.write(data)
                 break
-    
+
     def stop(self):
         self.stop = True
         self.listen_thread.join()
