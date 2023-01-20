@@ -39,13 +39,13 @@ class UI:
                 print(f"File with provided path {new_resource_path} does not exist")
             elif os.path.exists(os.path.join(self.node.res_handler.local_folder, new_resource_path)):
                 print(f"File with provided path {new_resource_path} already exists in local folder")
-        
+
 
     def download_resource(self, filename: str):
         """Prompts the user to enter the name of a resource to download from a remote node"""
         raise socket.error
         self.node.get_file(filename)
-        
+
 
     def greet_user(self):
         message = "Welcome to P2P network UI"
@@ -67,6 +67,7 @@ class UI:
             "3": "Delete resource",
             "4": "Download resource",
             "5": "Broadcast local resources",
+            "6": "Display all resources",
             "q": "Exit"
         }
         return options

@@ -11,9 +11,9 @@ END_CONNECTION = b'\x00'
 class P2PNode:
     def __init__(self) -> None:
         self.res = {}
+        self.res_handler = ResourceHandler('./res')
+        self.resources = set(self.res_handler.scan_local_folder().keys())
         self.connect()
-        self.res_handler = ResourceHandler('./psi_projekt_download')
-
 
     def connect(self):
         self.broadcast_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -31,17 +31,22 @@ class P2PNode:
         self.listen_thread = threading.Thread(target=self.listen)
         self.listen_thread.start()
 
+        self.share_files(self.resources)
+
     def listen(self):
         while not self.stop:
             data, addr = self.broadcast_sock.recvfrom(1024)
 
+            if data == END_CONNECTION:
+                return
+
             if socket.gethostbyname(socket.gethostname()) == addr[0]:
                 continue
+
             message = data.decode()
             if message.startswith("FILES"):
                 files = message[6:].split(",")
-                self.files[addr] = files
-                print(f'{addr} has files: {files}')
+                # print(files)
             if message.startswith("GET_NAMES"):
                 filename = message[9:]
                 if self.res_handler.check_resource(filename):
@@ -61,8 +66,9 @@ class P2PNode:
                 client.close()
 
     def share_files(self, filenames):
-        self.files[("0.0.0.0", PORT)] = filenames
+        self.resources = filenames
         message = "FILES" + ",".join(filenames)
+        # print(message)
         self.broadcast_sock.sendto(message.encode(), ('<broadcast>', PORT))
 
     def get_file(self, filename):
@@ -94,5 +100,5 @@ class P2PNode:
                 f.write(data)
 
     def stop_node(self):
-        self.stop = True
+        self.broadcast_sock.sendto(END_CONNECTION, ("127.0.0.1", PORT))
         self.listen_thread.join()
