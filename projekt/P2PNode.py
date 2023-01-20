@@ -1,6 +1,7 @@
 import socket
 import threading
-import time
+import os
+
 from resourceHandler import ResourceHandler
 
 PORT = 4000
@@ -12,7 +13,7 @@ class P2PNode:
     def __init__(self) -> None:
         self.res = {}
         self.connect()
-        self.res_handler = ResourceHandler('./psi_projekt_download')
+        self.res_handler = ResourceHandler(os.getenv('RESOURCES_DIR'))
 
 
     def connect(self):
