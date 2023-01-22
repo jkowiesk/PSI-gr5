@@ -31,7 +31,7 @@ class P2PNode:
         self.listen_thread = threading.Thread(target=self.listen)
         self.listen_thread.start()
 
-        self.share_files(self.resources)
+        self.share_files()
 
     def listen(self):
         while not self.stop:
@@ -45,10 +45,10 @@ class P2PNode:
 
             message = data.decode()
             if message.startswith("FILES"):
-                files = message[6:].split(",")
-                # print(files)
-            if message.startswith("GET_NAMES"):
-                filename = message[9:]
+                files = message[5:].split(",")
+                self.resources.update(files)
+            if message.startswith("GET_NAME"):
+                filename = message[8:]
                 if self.res_handler.check_resource(filename):
                     self.broadcast_sock.sendto("HAS_FILE".encode(), (addr[0], PORT + 1))
             elif message.startswith("GET_FILE"):
@@ -60,19 +60,15 @@ class P2PNode:
 
                 for chunk in self.res_handler.divide_into_batches(processed_file, BATCH_SIZE):
                     client.send(chunk)
-                else:
-                    client.send("FILE_NOT_FOUND".encode())
                 client.send(END_CONNECTION)
                 client.close()
 
-    def share_files(self, filenames):
-        self.resources = filenames
-        message = "FILES" + ",".join(filenames)
-        # print(message)
+    def share_files(self):
+        message = "FILES" + ",".join(self.resources)
         self.broadcast_sock.sendto(message.encode(), ('<broadcast>', PORT))
 
     def get_file(self, filename):
-        message = "GET_NAMES" + filename
+        message = "GET_NAME" + filename
         self.broadcast_sock.sendto(message.encode(), ('<broadcast>', PORT))
 
         is_done = False
@@ -98,6 +94,7 @@ class P2PNode:
                     break
 
                 f.write(data)
+        return 0
 
     def stop_node(self):
         self.broadcast_sock.sendto(END_CONNECTION, ("127.0.0.1", PORT))

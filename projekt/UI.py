@@ -25,7 +25,10 @@ class UI:
 
     def display_all_resources(self):
         """Displays all resources"""
-        pass
+        print("KNOWN RESOURCES:")
+        for res in self.node.resources:
+            print(res)
+        print()
 
     def add_new_resource(self):
         """Prompts the user to add a new resource from their local file system"""
@@ -43,9 +46,8 @@ class UI:
 
     def download_resource(self, filename: str):
         """Prompts the user to enter the name of a resource to download from a remote node"""
-        raise socket.error
-        self.node.get_file(filename)
-
+        # raise socket.error            FOR TESTING
+        return self.node.get_file(filename)
 
     def greet_user(self):
         message = "Welcome to P2P network UI"
@@ -96,7 +98,7 @@ class UI:
                 while tries:
                     try:
                         tries -= 1
-                        self.download_resource(filename)
+                        returnCode = self.download_resource(filename)
                     except (socket.error, socket.timeout) as e:
                         if not tries:
                             message = "ERROR"
@@ -105,8 +107,12 @@ class UI:
                             break
                         else:
                             continue
+                    if returnCode == 0:
+                        break
             elif user_input == "5":
-                self.broadcast_local_resources()
+                self.node.share_files()
+            elif user_input == "6":
+                self.display_all_resources()
             elif user_input == "q":
                 self.node.stop_node()
                 break
