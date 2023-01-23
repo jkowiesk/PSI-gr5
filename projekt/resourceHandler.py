@@ -19,7 +19,7 @@ class ResourceHandler:
             raise ValueError("Unable to scan local folder")
 
     def delete_resource(self, resource_name: str) -> bool:
-        if not check_resource(resource_name):
+        if not self.check_resource(resource_name):
             return False
         os.remove(os.path.join(self.local_folder, resource_name))
         return True
@@ -30,7 +30,6 @@ class ResourceHandler:
             shutil.copy(file_path, os.path.join(self.local_folder, file_name))
         except Exception:
             raise ValueError(f"Unable to copy file from this path: {file_path} to local folder")
-
 
     def check_resource(self, resource_name: str) -> bool:
         try:
