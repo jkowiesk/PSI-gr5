@@ -1,3 +1,8 @@
-FROM python:3
-ADD tcp_server.py /
-ENTRYPOINT [ "python", "./tcp_server.py" ]
+FROM python:3.10
+
+WORKDIR /src/
+
+COPY . .
+
+ENTRYPOINT ["python3", "./tcp_server.py"]
+
