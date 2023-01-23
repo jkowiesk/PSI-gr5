@@ -71,10 +71,11 @@ class P2PNode:
         message = "GET_NAME" + filename
         self.broadcast_sock.sendto(message.encode(), ('<broadcast>', PORT))
 
-        is_done = False
-        while not is_done:
+        try:
+            self.get_sock.settimeout(5)
             _, peer = self.get_sock.recvfrom(1024)
-            is_done = True
+        except TimeoutError as te:
+            return 1
 
         self.get_sock.sendto(f"GET_FILE{filename}".encode(), peer)
 
