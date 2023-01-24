@@ -113,4 +113,6 @@ class P2PNode:
 
     def stop_node(self):
         self.broadcast_sock.sendto(END_CONNECTION, ("127.0.0.1", PORT))
+        self.get_sock.close()
+        self.broadcast_sock.close()
         self.listen_thread.join()
