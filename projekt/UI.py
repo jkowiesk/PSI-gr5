@@ -92,6 +92,7 @@ class UI:
                     try:
                         tries -= 1
                         returnCode = self.download_resource(filename)
+                        print(tries)
                     except (socket.error, socket.timeout) as e:
                         if not tries:
                             message = "ERROR"

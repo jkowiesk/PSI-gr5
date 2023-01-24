@@ -11,7 +11,6 @@ END_CONNECTION = b'\x00'
 
 class P2PNot:
     def __init__(self) -> None:
-        self.res = {}
         self.res_handler = ResourceHandler(os.getenv('RESOURCES_DIR'))
         self.resources = set(self.res_handler.scan_local_folder().keys())
         self.connect()
@@ -33,7 +32,7 @@ class P2PNot:
 
     def listen(self):
         while not self.stop:
-            data, addr = self.broadcast_sock.recvfrom(1024)
+            data, addr = self.broadcast_sock.recvfrom(BATCH_SIZE)
 
             if data == END_CONNECTION:
                 return
@@ -56,8 +55,9 @@ class P2PNot:
                     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
                     s.bind(("", PORT))
                     s.listen(1)
-                    print("XD")
-                    _, addr = s.accept()
+                    client, addr = s.accept()
+
+                    client.close()
 
     def share_files(self):
         message = "FILES" + ",".join(self.resources)
@@ -69,7 +69,7 @@ class P2PNot:
 
         is_done = False
         while not is_done:
-            _, peer = self.get_sock.recvfrom(1024)
+            _, peer = self.get_sock.recvfrom(BATCH_SIZE)
             is_done = True
 
         self.get_sock.sendto(f"GET_FILE{filename}".encode(), peer)
@@ -86,7 +86,7 @@ class P2PNot:
 
             with open(f"{self.res_handler.local_folder}/{filename}", 'wb') as f:
                 while True:
-                    data = s.recv(1024)
+                    data = s.recv(BATCH_SIZE)
                     print(data)
 
                     if data == END_CONNECTION or END_CONNECTION in data:

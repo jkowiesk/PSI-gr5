@@ -11,7 +11,6 @@ END_CONNECTION = b'\x00'
 
 class P2PNode:
     def __init__(self) -> None:
-        self.res = {}
         self.res_handler = ResourceHandler(os.getenv('RESOURCES_DIR'))
         self.resources = set(self.res_handler.scan_local_folder().keys())
         self.connect()
@@ -33,7 +32,7 @@ class P2PNode:
 
     def listen(self):
         while not self.stop:
-            data, addr = self.broadcast_sock.recvfrom(1024)
+            data, addr = self.broadcast_sock.recvfrom(BATCH_SIZE)
 
             if data == END_CONNECTION:
                 return
@@ -75,14 +74,16 @@ class P2PNode:
         message = "GET_NAME" + filename
         self.broadcast_sock.sendto(message.encode(), ('<broadcast>', PORT))
 
+        print("xD")
         is_done = False
         self.get_sock.settimeout(5)
         try:
             while not is_done:
-                _, peer = self.get_sock.recvfrom(1024)
+                _, peer = self.get_sock.recvfrom(BATCH_SIZE)
                 is_done = True
         except socket.timeout:
             return 1
+
 
         self.get_sock.sendto(f"GET_FILE{filename}".encode(), peer)
         is_connected = False
@@ -99,7 +100,7 @@ class P2PNode:
 
             with open(f"{self.res_handler.local_folder}/{filename}", 'wb') as f:
                 while True:
-                    data = s.recv(1024)
+                    data = s.recv(BATCH_SIZE)
                     print(data)
 
                     if data == END_CONNECTION or END_CONNECTION in data:
