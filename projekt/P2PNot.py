@@ -24,10 +24,6 @@ class P2PNot:
         self.get_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.get_sock.bind(('', PORT + 1))
 
-        self.file_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.file_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.file_sock.bind(('', PORT))
-
         self.stop = False
 
         self.listen_thread = threading.Thread(target=self.listen)
@@ -55,12 +51,13 @@ class P2PNot:
                     self.broadcast_sock.sendto("HAS_FILE".encode(), (addr[0], PORT + 1))
             elif message.startswith("GET_FILE"):
                 filename = message[8:]
-                self.file_sock.listen(5)
-                print("XD")
-                client, addr = self.file_sock.accept()
 
-                client.close()
-                self.file_sock.shutdown(socket.SHUT_RD)
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+                    s.bind(("", PORT))
+                    s.listen(1)
+                    print("XD")
+                    _, addr = s.accept()
 
     def share_files(self):
         message = "FILES" + ",".join(self.resources)
@@ -77,26 +74,28 @@ class P2PNot:
 
         self.get_sock.sendto(f"GET_FILE{filename}".encode(), peer)
 
-        is_connected = False
-        while not is_connected:
-            try:
-                self.file_sock.connect((peer[0], PORT))
-                is_connected = True
-            except:
-                continue
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("", PORT + 1))
+            while not is_connected:
+                try:
+                    print(peer)
+                    s.connect((peer[0], PORT))
+                    is_connected = True
+                except:
+                    continue
 
-        with open(f"{self.res_handler.local_folder}/{filename}", 'wb') as f:
-            while True:
-                data = self.file_sock.recv(1024)
+            with open(f"{self.res_handler.local_folder}/{filename}", 'wb') as f:
+                while True:
+                    data = s.recv(1024)
+                    print(data)
 
-                if data == END_CONNECTION:
-                    break
+                    if data == END_CONNECTION or END_CONNECTION in data:
+                        break
 
-                if data == "":
-                    raise socket.error
+                    if data == b"":
+                        raise socket.error
 
-                f.write(data)
-        return 0
+                    f.write(data)
 
     def stop_node(self):
         self.broadcast_sock.sendto(END_CONNECTION, ("127.0.0.1", PORT))

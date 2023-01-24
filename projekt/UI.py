@@ -15,6 +15,7 @@ class UI:
 
     def display_all_resources(self):
         """Displays all resources"""
+        print(self.node.resources)
         print("KNOWN RESOURCES:")
         for res in self.node.resources:
             print(res)
@@ -26,6 +27,7 @@ class UI:
             new_resource_path = input("Please provide resource name: ")
             if not os.path.exists(os.path.join(self.node.res_handler.local_folder, new_resource_path)) and os.path.exists(new_resource_path):
                 self.node.res_handler.copy_file_to_local_folder(file_path=new_resource_path)
+                print(self.node.res_handler.scan_local_folder().keys())
                 self.node.resources.update(self.node.res_handler.scan_local_folder().keys())
                 print("File successfully copied to local folder!")
                 break
@@ -99,6 +101,10 @@ class UI:
                         else:
                             continue
                     if returnCode == 0:
+                        break
+                    if returnCode == 1:
+                        print("The resource is no longer in network")
+                        self.node.resources.remove(filename)
                         break
                 print()
 
