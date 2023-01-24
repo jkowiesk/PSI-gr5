@@ -1,10 +1,10 @@
-from P2PNode import P2PNode
+from P2PNot import P2PNot
 import os
 import socket
 
 class UI:
     def __init__(self):
-        self.node = P2PNode()
+        self.node = P2PNot()
 
     def display_local_resources(self):
         """Displays the resources that are currently stored locally"""
@@ -41,7 +41,7 @@ class UI:
         return self.node.get_file(filename)
 
     def greet_user(self):
-        message = "Welcome to P2P network UI"
+        message = "Welcome to P2P NOT UI"
         print("#" * len(message))
         print(message)
         print("#" * len(message))
@@ -100,8 +100,6 @@ class UI:
                             continue
                     if returnCode == 0:
                         break
-                print()
-
             elif user_input == "5":
                 self.node.share_files()
             elif user_input == "6":

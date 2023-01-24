@@ -9,7 +9,7 @@ BATCH_SIZE = 1024
 
 END_CONNECTION = b'\x00'
 
-class P2PNode:
+class P2PNot:
     def __init__(self) -> None:
         self.res = {}
         self.res_handler = ResourceHandler(os.getenv('RESOURCES_DIR'))
@@ -56,19 +56,14 @@ class P2PNode:
             elif message.startswith("GET_FILE"):
                 filename = message[8:]
                 self.file_sock.listen(5)
-
+                print("XD")
                 client, addr = self.file_sock.accept()
 
-                processed_file = self.res_handler.process_resource(filename)
-
-                for chunk in self.res_handler.divide_into_batches(processed_file, BATCH_SIZE):
-                    client.send(chunk)
-
-                client.send(END_CONNECTION)
                 client.close()
+                self.file_sock.shutdown(socket.SHUT_RD)
 
     def share_files(self):
-        message = "FILES" + ",".join(self.res_handler.scan_local_folder().keys())
+        message = "FILES" + ",".join(self.resources)
         self.broadcast_sock.sendto(message.encode(), ('<broadcast>', PORT))
 
     def get_file(self, filename):
@@ -81,11 +76,10 @@ class P2PNode:
             is_done = True
 
         self.get_sock.sendto(f"GET_FILE{filename}".encode(), peer)
-        is_connected = False
 
+        is_connected = False
         while not is_connected:
             try:
-                print(peer)
                 self.file_sock.connect((peer[0], PORT))
                 is_connected = True
             except:
@@ -94,12 +88,11 @@ class P2PNode:
         with open(f"{self.res_handler.local_folder}/{filename}", 'wb') as f:
             while True:
                 data = self.file_sock.recv(1024)
-                print(data)
 
                 if data == END_CONNECTION:
                     break
 
-                if data == b"":
+                if data == "":
                     raise socket.error
 
                 f.write(data)

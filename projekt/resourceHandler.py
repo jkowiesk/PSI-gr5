@@ -74,6 +74,6 @@ if __name__ == "__main__":
     print(local_files)
 
     assert resource_handler.check_resource(resource_name="mark2")
-    
+
     processed_file = resource_handler.process_resource(resource_name="mark2")
     print(processed_file)
