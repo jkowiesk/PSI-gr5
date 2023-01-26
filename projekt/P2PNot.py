@@ -72,30 +72,20 @@ class P2PNot:
             _, peer = self.get_sock.recvfrom(BATCH_SIZE)
             is_done = True
 
+
         self.get_sock.sendto(f"GET_FILE{filename}".encode(), peer)
+        is_connected = False
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(("", PORT + 1))
             while not is_connected:
                 try:
-                    print(peer)
                     s.connect((peer[0], PORT))
                     is_connected = True
                 except:
                     continue
 
-            with open(f"{self.res_handler.local_folder}/{filename}", 'wb') as f:
-                while True:
-                    data = s.recv(BATCH_SIZE)
-                    print(data)
-
-                    if data == END_CONNECTION or END_CONNECTION in data:
-                        break
-
-                    if data == b"":
-                        raise socket.error
-
-                    f.write(data)
+            s.close()
 
     def stop_node(self):
         self.broadcast_sock.sendto(END_CONNECTION, ("127.0.0.1", PORT))

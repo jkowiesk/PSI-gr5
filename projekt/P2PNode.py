@@ -54,17 +54,32 @@ class P2PNode:
             elif message.startswith("GET_FILE"):
                 filename = message[8:]
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-                    s.bind(("", PORT))
-                    s.listen(1)
-                    client, addr = s.accept()
+                    tries = 2
+                    is_data_send = False
+                    while tries:
+                        try:
+                            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+                            s.bind(("", PORT))
+                            s.listen(1)
+                            client, addr = s.accept()
 
-                    processed_file = self.res_handler.process_resource(filename)
+                            processed_file = self.res_handler.process_resource(filename)
 
-                    for chunk in self.res_handler.divide_into_batches(processed_file, BATCH_SIZE):
-                        client.sendall(chunk)
+                            for chunk in self.res_handler.divide_into_batches(processed_file, BATCH_SIZE):
+                                client.sendall(chunk)
 
-                    client.send(END_CONNECTION)
+                            client.send(END_CONNECTION)
+                            is_data_send = True
+                            break
+                        except:
+                            print("ERROR while sending a fil, trying one more time")
+                            tries -= 1
+
+                    if not is_data_send:
+                        print("File could not be send after two tries\nPlease press ENTER to restart UI")
+                        
+                    s.close()
+
 
     def share_files(self):
         message = "FILES" + ",".join(self.res_handler.scan_local_folder().keys())
@@ -74,7 +89,6 @@ class P2PNode:
         message = "GET_NAME" + filename
         self.broadcast_sock.sendto(message.encode(), ('<broadcast>', PORT))
 
-        print("xD")
         is_done = False
         self.get_sock.settimeout(5)
         try:
@@ -92,7 +106,6 @@ class P2PNode:
             s.bind(("", PORT + 1))
             while not is_connected:
                 try:
-                    print(peer)
                     s.connect((peer[0], PORT))
                     is_connected = True
                 except:
@@ -101,7 +114,6 @@ class P2PNode:
             with open(f"{self.res_handler.local_folder}/{filename}", 'wb') as f:
                 while True:
                     data = s.recv(BATCH_SIZE)
-                    print(data)
 
                     if data == END_CONNECTION or END_CONNECTION in data:
                         break

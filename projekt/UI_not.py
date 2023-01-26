@@ -85,21 +85,17 @@ class UI:
                     print(f"No such file in local directory: {resource_name}")
             elif user_input == "4":
                 filename = input("Write filename: ")
-                tries = 2
-                while tries:
-                    try:
-                        tries -= 1
-                        returnCode = self.download_resource(filename)
-                    except (socket.error, socket.timeout) as e:
-                        if not tries:
-                            message = "ERROR"
-                            print(f"{'#' * len(message)} {message}")
-                            print(f"Caught exception socket.error : {e}\nCould not send a download a file after two tries\n")
-                            break
-                        else:
-                            continue
-                    if returnCode == 0:
-                        break
+                print()
+                returnCode = self.download_resource(filename)
+                
+                if returnCode == 0:
+                    print("File successfully downloaded!")
+                if returnCode == -1:
+                    print("Unable to download file")
+                if returnCode == 1:
+                    print("The resource is no longer in network")
+                    self.node.resources.remove(filename)
+                print()
             elif user_input == "5":
                 self.node.share_files()
             elif user_input == "6":

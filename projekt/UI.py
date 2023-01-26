@@ -98,15 +98,16 @@ class UI:
                             message = "ERROR"
                             print(f"{'#' * len(message)} {message}")
                             print(f"Caught exception socket.error : {e}\nCould not send a download a file after two tries\n")
+                            self.node.res_handler.delete_resource(resource_name=filename)
                             break
                         else:
                             continue
+                
                     if returnCode == 0:
-                        break
+                        print("File successfully downloaded!")
                     if returnCode == 1:
                         print("The resource is no longer in network")
                         self.node.resources.remove(filename)
-                        break
                 print()
 
             elif user_input == "5":
